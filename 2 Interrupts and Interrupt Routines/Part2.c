@@ -2,8 +2,8 @@
  *  Button Interrupt Example
  *
  *  Created on: Jan 30, 2023
- *      Author: Russell Trafford
- *      Version: 1.0
+ *      Author: Brandon Tran
+ *      Version: 2.0
  *
  *      This example will show you how to configure an Interrupt and Interrupt Service Routine.
  *
@@ -14,11 +14,10 @@
  *      There have been some "todo" notes which can be helpful in finding things to change in the code.
  */
 
-
 #include <msp430.h>
 
 char ToggleEnable = 0x01;                       // Global Variable to track if the LED should be on or off
-
+char RedGreen = 0;                              // Global Variable to specify RED or GREEN is on or off (0 equals Red and 1 equals Green)
 int main(void)
 {
     WDTCTL = WDTPW | WDTHOLD;               // Stop watchdog timer
@@ -26,8 +25,10 @@ int main(void)
     // Configure GPIO
     P1OUT &= ~BIT0;                         // Clear P1.0 output latch for a defined power-on state
     P1DIR |= BIT0;                          // Set P1.0 to output direction
+    P6OUT &= ~BIT6;                         //Clear P6.6 output latch for a defined power-on state
+    P6DIR |= BIT6;                         //Set P6.6 to output direction
 
-    // @TODO You need to add in the configuration for the Green LED
+
 
     P2OUT |= BIT3;                          // Configure P2.3 as pulled-up
     P2REN |= BIT3;                          // P2.3 pull-up register enable
@@ -45,11 +46,19 @@ int main(void)
     while(1)
     {
         // @TODO You will need to modify this code to change between blinking the Red LED or the Green LED
-        if (ToggleEnable)
+
+        if (ToggleEnable && RedGreen){ //If Toggle and RedGreen is 1
             P1OUT ^= BIT0;                  // P1.0 = toggle
-        else
-            P1OUT &= ~BIT0;                 // Set P1.0 to 0
+        }
+        else if (ToggleEnable && (~RedGreen)){ //If Toggle is 1 and RedGreen is 0
+            P6OUT ^= BIT6;                  // P6.6 = toggle
+        }
+        else {
+            P1OUT &= ~BIT0;                // Set P1.0 to 0
+            P6OUT &= ~BIT6;                // Set P6.6 to 0
+        }
         __delay_cycles(100000);
+
     }
 }
 
@@ -60,5 +69,9 @@ __interrupt void Port_2(void)
     // @TODO You might need to modify this based on your approach to the lab
     P2IFG &= ~BIT3;                         // Clear P1.3 IFG
     ToggleEnable ^= 0x01;                   // Enable if the toggle should be active
+    if(ToggleEnable)
+    RedGreen ^= 0x01;                       // Enable if P1.0 or P6.6 should be active
 }
+
+
 
