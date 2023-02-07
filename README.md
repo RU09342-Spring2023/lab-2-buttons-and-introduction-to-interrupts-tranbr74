@@ -1,53 +1,43 @@
-# Part 4: Occupancy Detection and Alert System
-You are being asked to design a rudimentary occupancy alert system with the following behavior:
-- The system when turned on needs to blink the Green LED once every 3 seconds to show it is armed.
-- When the occupancy sensor detects someone, it will output a Logic 1, and your system needs to move into a "Warning" state, where the Green LED stops blinking, and the Red LED Blinks once per second (500ms on, 500ms off).
-- If the occupancy detector still shows someone there after 10 seconds, your system should indicate this with the RED Led constantly staying on, and move into the ALERT state.
-- If the occupancy detector **before** the 15 seconds goes back to a 0, indicating the room is now empty, then the system should go back to the armed state.
-- When in the ALERT State, the only way for the system to go back to the Armed state is to press the P4.1 Button.
+README:
 
-## Occupancy Sensor
-You will be **first** *emulating* the Occupancy Sensor with the P4.1 button. This can be used for pretty much all of your testing and design.
+Author: Brandon Tran
 
-When you have a design that is working, you can then test your code with a [Passive Infrared Occupancy Detector](https://www.amazon.com/DIYmall-HC-SR501-Motion-Infrared-Arduino/dp/B012ZZ4LPM)
+Version: 2/6/2023
 
-## Getting Started
-I highly recommend on paper or a whiteboard drawing up a state machine or something to help understand the flow of the system.
+Purpose: Create a security system using the MSP430 Board and the infrared sensor
 
-From there, you should work on each stage/state and see if the transitions work. For example, can you get the system to go from the armed state to the warning state.
+How does it work?
 
-Remember that your code is going to be running in a loop, so you need to make sure you consider how this is going to work when trying to blink the LEDs.
+****
+Using two inputs and outputs:
+Inputs:
+	Port 1.3 - Input pin to get a signal from the sensor
+	Port 4.1 - Input button to reset state of alarm system
 
-## Do I need to use Interrupts?
-Well, it would be cool, but at the end of the day, we are asking you for a design. Start with polling or what you feel comfortable with, but we would like you to try out using the interrupts, maybe at least for the system Disarm Button.
+Outputs:
+	Port 1.0 - Output Red LED
+	Port 6.6 - Output Green LED
 
-## Navigating multiple states
-One way to approach a system with multiple states is to actually use a case statement in your main loop. For example:
-```c
-#define ARMED_STATE 0
-#define WARNING_STATE 1
-#define ALERT_STATE 2
 
-// Put some initialization here
+**Using three states**
 
-char state = ARMED_STATE;
+ARMED:
+	Green LED blinks on and off every 3 seconds.
+	IF the sensor detects motion:
+ The ARMED state switches to WARNING state. 
+The green LED will stop blinking.
 
-while(1)
-{
-  switch (state) {
-    case ARMED_STATE:
-    {
-      // Do something in the ARMED state
-      // If something happens, you can move into the WARNING_STATE
-      // state = WARNING_STATE
-    }
-    case WARNING_STATE:
-    {
-      // Do something in the WARNING_STATE
-    }
-  }
-}
-```
+WARNING:
+	The Red LED blinks on and off every 1 second.
+	A timer is implemented to count up to 10 seconds
+	IF:
+10 seconds passed and motion is still detected, switch to ALERT state.
+10 seconds passed and motion has not been detected, switch to ARMED state and turn off the Red LED.
+	Timer will go back to 0.
 
-## Submission
-There is a sample file in this folder you will need to import into your Code Composer and work on. You will need to submit that file, documented well, and a README.md file (you can replace this one) with the documentation that tells someone about what the code is, what it does, how it works etc. For an audience for your README, imagine you at the beginning of the lab, looking for code which does, well, this. 
+ALERT:
+	Red LED stays on.
+
+
+****
+P4.1 (Button), at any state, will reset the alarm system to ARMED. All LEDS are turned off once the button is pressed.
